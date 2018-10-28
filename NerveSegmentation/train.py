@@ -148,7 +148,7 @@ class Learner(object):
     def __pretrain_model_load(self, model, pretrained_path):
         if pretrained_path is not None:
             if not os.path.exists(pretrained_path):
-                raise ValueError, 'No such pre-trained path exists'
+                raise ValueError('No such pre-trained path exists')
             model.load_weights(pretrained_path)
             
             
