@@ -256,7 +256,7 @@ def main():
     split_random = options.split_random
     model_name = options.model_name
     if model_name is None:
-        raise ValueError, 'model_name is not defined'
+        raise ValueError('model_name is not defined')
     #
     import imp
     model_ = imp.load_source('model_', model_name + '.py')
