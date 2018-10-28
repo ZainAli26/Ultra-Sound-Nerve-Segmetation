@@ -4,8 +4,9 @@ import cv2, sys, os, shutil, random
 import numpy as np
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-from keras.preprocessing.image import flip_axis, random_channel_shift
-from keras.engine.training import slice_X
+#from keras.preprocessing.image import flip_axis, random_channel_shift
+from keras.preprocessing.image import ImageDataGenerator
+from keras.engine.training import slice_arrays
 from keras_plus import LearningRateDecay
 from u_model import get_unet, IMG_COLS as img_cols, IMG_ROWS as img_rows
 from data import load_train_data, load_test_data, load_patient_num
@@ -13,7 +14,7 @@ from augmentation import random_zoom, elastic_transform, random_rotation
 from utils import save_pickle, load_pickle, count_enum
 
 _dir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '')
-
+img_gen = ImageDataGenerator()
 
 def preprocess(imgs, to_rows=None, to_cols=None):
     if to_rows is None or to_cols is None:
@@ -126,8 +127,8 @@ class Learner(object):
         if shuffle:
             data, mask = cls.shuffle_train(data, mask)
         split_at = int(len(data) * (1. - validation_split))
-        x_train, x_valid = (slice_X(data, 0, split_at), slice_X(data, split_at))
-        y_train, y_valid = (slice_X(mask, 0, split_at), slice_X(mask, split_at))
+        x_train, x_valid = (slice_arrays(data, 0, split_at), slice_arrays(data, split_at))
+        y_train, y_valid = (slice_arrays(mask, 0, split_at), slice_arrays(mask, split_at))
         cls.save_valid_idx(range(len(data))[split_at:])
         return (x_train, y_train), (x_valid, y_valid)
         
@@ -169,11 +170,11 @@ class Learner(object):
 #                y_train.append(_y.reshape((1,) + _y.shape))
             
             #flip x
-            x_train.append(flip_axis(x, 2))
-            y_train.append(flip_axis(y, 2))
+            x_train.append(img_gen.flip_axis(x, 2))
+            y_train.append(img_gen.flip_axis(y, 2))
             #flip y
-            x_train.append(flip_axis(x, 1))
-            y_train.append(flip_axis(y, 1))
+            x_train.append(img_gen.flip_axis(x, 1))
+            y_train.append(img_gen.flip_axis(y, 1))
             #continue
             #zoom
             for _ in xrange(1):
@@ -186,7 +187,7 @@ class Learner(object):
                 y_train.append(_y)
             #intentsity
             for _ in xrange(1):
-                _x = random_channel_shift(x, 5.0)
+                _x = img_gen.random_channel_shift(x, 5.0)
                 x_train.append(_x)
                 y_train.append(y)
     
