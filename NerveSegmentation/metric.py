@@ -30,7 +30,7 @@ def main():
     b = np.random.random((420,100))
 #    print a.flatten().shape
     res =  np_dice_coef(a,b )
-    print res
+    print (res)
 
 
 if __name__ == '__main__':

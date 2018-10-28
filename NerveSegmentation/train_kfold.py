@@ -158,7 +158,7 @@ class Learner(object):
         random_state = 51
         kf = KFold(len(x_train), n_folds=nfolds, shuffle=True, random_state=random_state)
         for i, (train_index, test_index) in enumerate(kf):
-            print 'Fold %d' % i
+            print ('Fold %d' % i)
             X_train, X_valid = x_train[train_index], x_train[test_index]
             Y_train, Y_valid = y_train[train_index], y_train[test_index]
             Y_valid_2 = self.get_object_existance(Y_valid)

@@ -17,7 +17,7 @@ def main():
     kfold_masks, kfold_prob = [], []
     weigths = []
     for name, (kfold, prefix) in ensembles.iteritems():
-        print 'Loading name=%s, prefix=%s, kfold=%d' % (name, prefix, kfold)
+        print ('Loading name=%s, prefix=%s, kfold=%d' % (name, prefix, kfold))
         ens_x_mask = np.load(prefix + 'imgs_mask_test.npy')
         ens_x_prob = np.load(prefix + 'imgs_mask_exist_test.npy')
         kfold_masks.append(ens_x_mask)
@@ -38,7 +38,7 @@ def main():
             probs[k] = weigths[k] * kfold_prob[k][i]
         res_masks[i] = np.sum(masks, 0)/total_weight
         res_probs[i] = np.sum(probs)/total_weight
-    print 'Saving', Learner.test_mask_res, Learner.test_mask_exist_res
+    print ('Saving', Learner.test_mask_res, Learner.test_mask_exist_res)
     np.save(Learner.test_mask_res, res_masks)
     np.save(Learner.test_mask_exist_res, res_probs)
     

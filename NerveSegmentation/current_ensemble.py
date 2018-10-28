@@ -93,7 +93,7 @@ def run_test():
         kfold_masks.append(test_masks)
         kfold_prob.append(test_probs)
     
-    print 'Summing results of ensemble'
+    print ('Summing results of ensemble')
     #
     res_masks = np.ndarray((dlen, 1, img_rows, img_cols), dtype=np.float32)
     res_probs = np.ndarray((dlen, ), dtype=np.float32)

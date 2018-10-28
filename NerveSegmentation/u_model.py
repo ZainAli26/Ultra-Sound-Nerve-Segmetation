@@ -200,10 +200,10 @@ def main():
     
     x = np.random.random((1, 1,img_rows,img_cols))
     res = model.predict(x, 1)
-    print res
+    print (res)
     #print 'res', res[0].shape
-    print 'params', model.count_params()
-    print 'layer num', len(model.layers)
+    print ('params', model.count_params())
+    print ('layer num', len(model.layers))
     #
 
 
