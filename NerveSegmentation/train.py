@@ -81,7 +81,7 @@ class Learner(object):
         if to_float:
             array = array.astype('float32')
         if self.mean is None or self.std is None:
-            raise ValueError, 'No mean/std is initialised'
+            raise ValueError('No mean/std is initialised')
         
         array -= self.mean
         array /= self.std
