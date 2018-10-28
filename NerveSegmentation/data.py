@@ -85,11 +85,11 @@ def create_test_data():
     i = 0
     print('Creating test images...')
     for image_name in images:
-	if image_name != ".gitignore":
-        	img_id = int(image_name.split('.')[0])
-        	img = cv2.imread(os.path.join(train_data_path, image_name), cv2.IMREAD_GRAYSCALE)
-        	imgs[i, 0] = img
-        	imgs_id[i] = img_id
+        if image_name != ".gitignore":
+                img_id = int(image_name.split('.')[0])
+                img = cv2.imread(os.path.join(train_data_path, image_name), cv2.IMREAD_GRAYSCALE)
+                imgs[i, 0] = img
+                imgs_id[i] = img_id
 
         if i % 100 == 0:
             print('Done: {0}/{1} images'.format(i, total))
