@@ -45,8 +45,8 @@ def get_patient_nums(string):
 def create_train_data():
     train_data_path = os.path.join(data_path, 'train')
     images = os.listdir(train_data_path)
-    images = [img for img in images if img.split('_')[-1]=="mask"]
-    total = len(images) 
+    images = [img for img in images if 'mask' not in img and img!=".gitignore"]
+    total = len(images)
 
     imgs = np.ndarray((total, 1, image_rows, image_cols), dtype=np.uint8)
     imgs_mask = np.ndarray((total, 1, image_rows, image_cols), dtype=np.uint8)
@@ -54,6 +54,7 @@ def create_train_data():
     print('Creating training images...')
     img_patients = np.ndarray((total,), dtype=np.uint8)
     for image_name in images:
+        print(image_name)
         if 'mask' in image_name:
             continue
         image_mask_name = image_name.split('.')[0] + '_mask.tif'
@@ -77,6 +78,7 @@ def create_train_data():
 def create_test_data():
     train_data_path = os.path.join(data_path, 'test')
     images = os.listdir(train_data_path)
+    images = [img for img in images if img!=".gitignore"]
     total = len(images)
 
     imgs = np.ndarray((total, 1, image_rows, image_cols), dtype=np.uint8)

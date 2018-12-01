@@ -12,16 +12,17 @@ from u_model import get_unet, IMG_COLS as img_cols, IMG_ROWS as img_rows
 from data import load_train_data, load_test_data, load_patient_num
 from augmentation import random_zoom, elastic_transform, random_rotation
 from utils import save_pickle, load_pickle, count_enum
+from image import flip_axis, random_channel_shift
 
 _dir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '')
-img_gen = ImageDataGenerator()
+#img_gen = ImageDataGenerator()
 
 def preprocess(imgs, to_rows=None, to_cols=None):
     if to_rows is None or to_cols is None:
         to_rows = img_rows
         to_cols = img_cols
     imgs_p = np.ndarray((imgs.shape[0], imgs.shape[1], to_rows, to_cols), dtype=np.uint8)
-    for i in xrange(imgs.shape[0]):
+    for i in range(imgs.shape[0]):
         imgs_p[i, 0] = cv2.resize(imgs[i, 0], (to_cols, to_rows), interpolation=cv2.INTER_CUBIC)
     return imgs_p
 
@@ -70,15 +71,17 @@ class Learner(object):
         return load_pickle(cls.valid_data_path)
     
     def _init_mean_std(self, data):
+        data = np.array(data)
         data = data.astype('float32')
         self.mean, self.std = np.mean(data), np.std(data)
         self.save_meanstd()
         return data
     
     def get_object_existance(self, mask_array):
-        return np.array([int(np.sum(mask_array[i, 0]) > 0) for i in xrange(len(mask_array))])
+        return np.array([int(np.sum(mask_array[i, 0]) > 0) for i in range(len(mask_array))])
 
     def standartize(self, array, to_float=False):
+        array = np.array(array)
         if to_float:
             array = array.astype('float32')
         if self.mean is None or self.std is None:
@@ -127,8 +130,9 @@ class Learner(object):
         if shuffle:
             data, mask = cls.shuffle_train(data, mask)
         split_at = int(len(data) * (1. - validation_split))
-        x_train, x_valid = (slice_arrays(data, 0, split_at), slice_arrays(data, split_at))
-        y_train, y_valid = (slice_arrays(mask, 0, split_at), slice_arrays(mask, split_at))
+        x_train, x_valid = data[:split_at], data[split_at:]
+        y_train, y_valid = mask[:split_at], mask[split_at:]
+        
         cls.save_valid_idx(range(len(data))[split_at:])
         return (x_train, y_train), (x_valid, y_valid)
         
@@ -155,10 +159,11 @@ class Learner(object):
             
     def augmentation(self, X, Y):
         print('Augmentation model...')
+        print(type(X),len(X))
         total = len(X)
         x_train, y_train = [], []
         
-        for i in xrange(total):
+        for i in range(total):
             x, y = X[i], Y[i]
             #standart
             x_train.append(x)
@@ -168,26 +173,26 @@ class Learner(object):
 #                _x, _y = elastic_transform(x[0], y[0], 100, 20)
 #                x_train.append(_x.reshape((1,) + _x.shape))
 #                y_train.append(_y.reshape((1,) + _y.shape))
-            
+            #= ImageDataGenerator()
             #flip x
-            x_train.append(img_gen.flip_axis(x, 2))
-            y_train.append(img_gen.flip_axis(y, 2))
+            x_train.append(flip_axis(x, 2))
+            y_train.append(flip_axis(y, 2))
             #flip y
-            x_train.append(img_gen.flip_axis(x, 1))
-            y_train.append(img_gen.flip_axis(y, 1))
+            x_train.append(flip_axis(x, 1))
+            y_train.append(flip_axis(y, 1))
             #continue
             #zoom
-            for _ in xrange(1):
+            for _ in range(1):
                 _x, _y = random_zoom(x, y, (0.9, 1.1))
                 x_train.append(_x)
                 y_train.append(_y)
-            for _ in xrange(0):
+            for _ in range(1):
                 _x, _y = random_rotation(x, y, 5)
                 x_train.append(_x)
                 y_train.append(_y)
             #intentsity
-            for _ in xrange(1):
-                _x = img_gen.random_channel_shift(x, 5.0)
+            for _ in range(1):
+                _x = random_channel_shift(x, 5.0)
                 x_train.append(_x)
                 y_train.append(y)
     
@@ -199,9 +204,13 @@ class Learner(object):
         print('Creating and compiling and fitting model...')
         print('Shape:', x_train.shape)
         #second output
+        #x_train = x_train.astype(np.int32)
+        #x_valid = x_valid.astype(np.int32)
+        #y_train = y_train.astype(np.int32)
+        #y_valid = y_valid.astype(np.int32)
         y_train_2 = self.get_object_existance(y_train)
         y_valid_2 = self.get_object_existance(y_valid)
-
+        print(y_train.dtype)
         #load model
         optimizer = Adam(lr=0.0045)
         model = self.model_func(optimizer)
@@ -227,19 +236,22 @@ class Learner(object):
         self._dir_init()
         print('Loading and preprocessing and standarize train data...')
         imgs_train, imgs_mask_train = load_train_data()
-        
+        print(imgs_train.shape)
+
         imgs_train = preprocess(imgs_train)
 
         imgs_mask_train = preprocess(imgs_mask_train)
-        
+
         imgs_mask_train = self.norm_mask(imgs_mask_train)
 
         split_func = split_random and self.split_train_and_valid or self.split_train_and_valid_by_patient
         (x_train, y_train), (x_valid, y_valid) = split_func(imgs_train, imgs_mask_train,
                                                         validation_split=self.validation_split)
+
         self._init_mean_std(x_train)
         x_train = self.standartize(x_train, True)
         x_valid = self.standartize(x_valid, True)
+        #print((x_train.shape))
         #augmentation
         x_train, y_train = self.augmentation(x_train, y_train)
         #fit

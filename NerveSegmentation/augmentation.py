@@ -3,6 +3,7 @@ import numpy as np
 from keras.preprocessing.image import ImageDataGenerator, Iterator
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
+from image import transform_matrix_offset_center,flip_axis
 
 
 _dir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '')
@@ -26,10 +27,12 @@ def random_zoom(x, y, zoom_range, row_index=1, col_index=2, channel_index=0,
                             [0, zy, 0],
                             [0, 0, 1]])
 
-    h, w = x.shape[row_index], x.shape[col_index]
-    transform_matrix = img_gen.transform_matrix_offset_center(zoom_matrix, h, w)
-    x = img_gen.apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    y = img_gen.apply_transform(y, transform_matrix, channel_index, fill_mode, cval)
+    #h, w = x.shape[row_index], x.shape[col_index]
+    #transform_matrix = transform_matrix_offset_center(zoom_matrix, h, w)
+    dictimg = {'zx':zy,'zy':zy}
+    datagen = ImageDataGenerator()
+    x = datagen.apply_transform(x, dictimg)
+    y = datagen.apply_transform(y, dictimg)
     return x, y
 
 
@@ -41,9 +44,11 @@ def random_rotation(x, y, rg, row_index=1, col_index=2, channel_index=0,
                                 [0, 0, 1]])
 
     h, w = x.shape[row_index], x.shape[col_index]
-    transform_matrix = img_gen.transform_matrix_offset_center(rotation_matrix, h, w)
-    x = img_gen.apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    y = img_gen.apply_transform(y, transform_matrix, channel_index, fill_mode, cval)
+    #transform_matrix = transform_matrix_offset_center(rotation_matrix, h, w)
+    datagen = ImageDataGenerator()
+    dictimg = {'theta':theta}
+    x = datagen.apply_transform(x, dictimg)
+    y = datagen.apply_transform(y, dictimg)
     return x, y
 
 
@@ -55,9 +60,9 @@ def random_shear(x, y, intensity, row_index=1, col_index=2, channel_index=0,
                              [0, 0, 1]])
 
     h, w = x.shape[row_index], x.shape[col_index]
-    transform_matrix = img_gen.transform_matrix_offset_center(shear_matrix, h, w)
-    x = img_gen.apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    y = img_gen.apply_transform(y, transform_matrix, channel_index, fill_mode, cval)
+    transform_matrix = transform_matrix_offset_center(shear_matrix, h, w)
+    x = apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
+    y = apply_transform(y, transform_matrix, channel_index, fill_mode, cval)
     return x, y
 
 
@@ -111,8 +116,8 @@ class CustomImageDataGenerator(object):
         
         if self.horizontal_flip:
             if True or np.random.random() < 0.5:
-                x = img_gen.flip_axis(x, 2)
-                y = img_gen.flip_axis(y, 2)
+                x = flip_axis(x, 2)
+                y = flip_axis(y, 2)
         
         # use composition of homographies to generate final transform that needs to be applied
         if self.rotation_range:
@@ -154,11 +159,11 @@ class CustomImageDataGenerator(object):
         transform_matrix = np.dot(np.dot(np.dot(rotation_matrix, translation_matrix), shear_matrix), zoom_matrix)
         
         h, w = x.shape[row_index], x.shape[col_index]
-        transform_matrix = img_gen.transform_matrix_offset_center(transform_matrix, h, w)
+        transform_matrix = transform_matrix_offset_center(transform_matrix, h, w)
         
-        x = img_gen.apply_transform(x, transform_matrix, channel_index,
+        x = apply_transform(x, transform_matrix, channel_index,
                             fill_mode='constant')
-        y = img_gen.apply_transform(y, transform_matrix, channel_index,
+        y = apply_transform(y, transform_matrix, channel_index,
                             fill_mode='constant')
         
         
@@ -166,11 +171,11 @@ class CustomImageDataGenerator(object):
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
-                x = img_gen.flip_axis(x, 1)
-                y = img_gen.flip_axis(y, 1)
+                x = flip_axis(x, 1)
+                y = flip_axis(y, 1)
         
         if self.channel_shift_range != 0:
-            x = img_gen.random_channel_shift(x, self.channel_shift_range)
+            x = random_channel_shift(x, self.channel_shift_range)
 
 
         if self.elastic is not None:
