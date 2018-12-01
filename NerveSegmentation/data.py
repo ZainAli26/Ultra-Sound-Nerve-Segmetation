@@ -48,8 +48,8 @@ def create_train_data():
     images = [img for img in images if 'mask' not in img and img!=".gitignore"]
     total = len(images)
 
-    imgs = np.ndarray((total, 1, image_rows, image_cols), dtype=np.uint8)
-    imgs_mask = np.ndarray((total, 1, image_rows, image_cols), dtype=np.uint8)
+    imgs = np.ndarray((total, image_rows, image_cols, 1), dtype=np.uint8)
+    imgs_mask = np.ndarray((total, image_rows, image_cols, 1), dtype=np.uint8)
     i = 0
     print('Creating training images...')
     img_patients = np.ndarray((total,), dtype=np.uint8)
@@ -62,8 +62,8 @@ def create_train_data():
         img = cv2.imread(os.path.join(train_data_path, image_name), cv2.IMREAD_GRAYSCALE)
         img_mask = cv2.imread(os.path.join(train_data_path, image_mask_name), cv2.IMREAD_GRAYSCALE)
 
-        imgs[i, 0] = img
-        imgs_mask[i, 0] = img_mask
+        imgs[i,:,:,0] = img
+        imgs_mask[i,:,:,0] = img_mask
         img_patients[i] = patient_num
         if i % 100 == 0:
             print('Done: {0}/{1} images'.format(i, total))
