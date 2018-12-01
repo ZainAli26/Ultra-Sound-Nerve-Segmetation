@@ -54,7 +54,6 @@ def create_train_data():
     print('Creating training images...')
     img_patients = np.ndarray((total,), dtype=np.uint8)
     for image_name in images:
-        print(image_name)
         if 'mask' in image_name:
             continue
         image_mask_name = image_name.split('.')[0] + '_mask.tif'
