@@ -224,7 +224,7 @@ class Learner(object):
         model.fit(
                    x_train, [y_train, y_train_2], 
                    validation_data=(x_valid, [y_valid, y_valid_2]),
-                   batch_size=128, nb_epoch=50,
+                   batch_size=16, nb_epoch=50,
                    verbose=1, shuffle=True,
                    callbacks=[model_save_best, model_checkpoint, early_s]
                    ) 
